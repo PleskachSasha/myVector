@@ -1,0 +1,5 @@
+﻿  myVector.cpp
+D:\Programming\myVector\myVector\myVector.cpp(22,1): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+D:\Programming\myVector\myVector\myVector.cpp(215): message : выполняется компиляция ссылки на экземпляр шаблон функции "Vector<int>::Vector<int>(std::initializer_list<int>)"
+D:\Programming\myVector\myVector\myVector.cpp(215): message : выполняется компиляция ссылки на экземпляр шаблон функции "Vector<int>::Vector<int>(std::initializer_list<int>)"
+  myVector.vcxproj -> D:\Programming\myVector\x64\Debug\myVector.exe
