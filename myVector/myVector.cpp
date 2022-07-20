@@ -1,19 +1,20 @@
 #include <iostream>
 #include <Vector>
 #include <initializer_list>
-
-
+#include <stdexcept>
 template<class T>
 class Vector
 {
 public:
+	template<class T>
+	class Iterator;
+
 	Vector() {
 		capacity_ = 1;
 		arr_ = new T[1];
 	}
-	Vector(int size) : size_(size)
+	Vector(size_t size) : size_(size), capacity_(size_ * 2)
 	{
-		capacity_ = size_;
 		arr_ = new T[size_]{};
 	}
 	template<class T1>
@@ -35,32 +36,39 @@ public:
 			arr_[i] = value;
 		}
 	}
-
 	//template<class T1>
 	//Vector(T1* begin, T1* end);
+	Vector(const Vector& other) {
+		if (this != &other) {
+			delete[] arr_;
 
-	// Почему нельзя Vector(const Vector& other)
-	Vector(Vector& other) {
-		delete[] arr_;
-		arr_ = new T[other.capacity()];
-		for (size_t i = 0; i < other.size(); ++i)
-		{
-			arr_[i] = other.arr_[i];
+			arr_ = new T[other.capacity()];
+
+			for (size_t i = 0; i < other.size(); ++i)
+			{
+				arr_[i] = other.arr_[i];
+			}
+
+			size_ = other.size();
+			capacity_ = other.capacity();
 		}
-		size_ = other.size();
-		capacity_ = other.capacity();
 	}
 	Vector& operator=(const Vector& other) {
-		delete[] arr_;
-		arr_ = new T[other.capacity()];
-		for (size_t i = 0; i < other.size(); ++i)
-		{
-			arr_[i] = other.arr_[i];
-		}
-		size_ = other.size();
-		capacity_ = other.capacity();
-	}
+		if (this != &other) {
+			delete[] arr_;
 
+			arr_ = new T[other.capacity()];
+
+			for (size_t i = 0; i < other.size(); ++i)
+			{
+				arr_[i] = other.arr_[i];
+			}
+
+			size_ = other.size();
+			capacity_ = other.capacity();
+		}
+		return *this;
+	}
 	Vector(Vector&& other) noexcept {
 		delete[] arr_;
 		size_ = other.size_;
@@ -72,7 +80,7 @@ public:
 		other.arr_ = nullptr;
 		
 	}
-	Vector& operator=(const Vector&& other) {
+	Vector& operator=(const Vector&& other) noexcept {
 		delete[] arr_;
 		size_ = other.size_;
 		capacity_ = other.capacity_;
@@ -82,19 +90,87 @@ public:
 		other.capacity_ = 0;
 		other.arr_ = nullptr;
 		
+		return *this;
 	}
 	~Vector() {
 		delete[] arr_;
 	}
 	
+	T& at(const size_t pos) {
+		if (pos >= size_) {
+			//???????????
+		}
+		return arr_[pos];
+	}
+	T& operator[](const size_t index) {
+		return arr_[index];
+	}
+	const T& operator[](const size_t index) const{
+		return arr_[index];
+	}
+	T& front() {
+		return arr_[0];
+	}
+	T& back() {
+		return arr_[size_ - 1];
+	}
 
-	T* begin() {
+	Iterator* begin() {
 		return &arr_[0];
 	}
-	T* end() {
+	Iterator* end() {
 		return &arr_[size_];
 	}
-	void push_back(int value) {
+
+	bool empty() {
+		return size_ ? true : false;
+	}
+	size_t size() const {
+		return size_;
+	}
+	void reserve(size_t new_cap) {
+		T* temp = arr_;
+		capacity_ = new_cap;
+		arr_ = new T[capacity_];
+
+		if(new_cap >= size_){
+			for (size_t i = 0; i < size_; ++i)
+				arr_[i] = temp[i];
+		}
+		else {
+			size_ = new_cap;
+			for (size_t i = 0; i < capacity_; ++i)
+				arr_[i] = temp[i];
+		}
+		
+		delete[] temp;
+	}
+	size_t capacity() const {
+		return capacity_;
+	}
+
+	void clear() {
+		size_ = 0;
+	}
+	void insert(T pos, T value) {
+		newCapacity(size_);
+		for (size_t i = size_; i > pos; --i) {
+			arr_[i] = arr_[i - 1];
+		}
+		arr_[pos] = value;
+		++size_;
+	}
+	//T* insert(T*pos, T value) 
+	void erase(size_t pos) {
+		for (size_t i = pos; i < size_; ++i) {
+			arr_[i] = arr_[i + 1];
+		}
+		--size_;
+	}
+	//T* erase(size_t pos);
+	//T* erase(T* pos);
+	//T* erase(T* begin, T* end);
+	void push_back(T value) {
 		newCapacity(size_);
 		arr_[size_] = value;
 		++size_;
@@ -108,41 +184,17 @@ public:
 		++size_;
 		arr_[0] = value;
 	}
-
 	//template<typename T1>
 	//void emplace_back(T1 value); // подумайте как реализовать этот метод(place in)
 
-	//T* insert(T*pos, T value) 
-	void insert(T pos, T value)	{
-		newCapacity(size_);
-		for (size_t i = size_; i > pos; --i) {
-			arr_[i] = arr_[i - 1];
-		}
-		arr_[pos] = value;
-		++size_;
+	void pop_back() {
+		--size_;
 	}
-	void erase(T pos) {
-		for (size_t i = pos; i < size_; ++i) {
+	void pop_front() {
+		for (size_t i = 0; i < size_; ++i) {
 			arr_[i] = arr_[i + 1];
 		}
 		--size_;
-	}
-	//T* erase(size_t pos);
-	//T* erase(T* pos);
-	//T* erase(T* begin, T* end);
-
-
-	T back() {
-		return arr_[size_ - 1];
-	}
-	T front() {
-		return arr_[0];
-	}
-	T& operator[](size_t index) {
-		return arr_[index];
-	}
-	const T& operator[](size_t index) const {
-		return arr_[index];
 	}
 	void resize(size_t newSize) {
 		newCapacity(newSize);
@@ -163,26 +215,31 @@ public:
 
 		delete[] temp;
 	}
-	void reserve(size_t new_cap) {
-		T* temp = arr_;
-		capacity_ = new_cap;
-		arr_ = new T[capacity_];
-		for (size_t i = 0; i < size_; ++i)
-			arr_[i] = temp[i];
 
-		delete[] temp;
-	}
-	size_t capacity() {
-		return capacity_;
-	}
-	size_t size() {
-		return size_;
-	}
-	bool empty() {
-		return size_ ? true : false;
-	}
+	template<class T>
+	class Iterator
+	{
+	public:
+		Iterator(T* cur) : cur_(cur) {}
+		~Iterator() { delete cur_; }
 
+		T& operator+ (int i) { return *(cur_ + i); }
+		T& operator- (int i) { return *(cur_ - i); }
 
+		T& operator++ (int) { return *(cur_++); }
+		T& operator++ () { return *(++cur_); }
+		T& operator-- (int) { return *(cur_--); }
+		T& operator-- () { return *(--cur_); }
+
+		bool operator!= (const Iterator& other) { return cur_ != other.cur_; }
+		bool operator== (const Iterator& other) { return cur_ == other.cur_; }
+
+		T& operator* () { return cur_; }
+
+		friend std::ostream& operator<< (std::ostream s, const Vector<T>& n);
+	private:
+		T* cur_;
+	};
 
 protected:
 	void newCapacity(size_t size) {
@@ -196,25 +253,30 @@ protected:
 			delete[] temp;
 		}
 	}
-
-	
-
 private:
 	T* arr_;
 	size_t size_{};
 	size_t capacity_{};
 };
 
+template<typename T>
+std::ostream& operator<< (std::ostream s, const Vector<T>& n)
+{
+	s << Vector<T>::cur_[n];
+}
 
 int main()
 {
 
-	//std::vector<int> v(2,3);
-	Vector<int> v{1,2,3,4,5};
-	Vector<int> v1 = std::move(v);
-	for (size_t i = 0; i < v1.size(); ++i)
-	{
-		std::cout << v1[i];
-	}
-}
+	std::vector<int> a{ 1,2,3,4,5 };
 
+	Vector<int> v{ 1,2,3,4,5 };
+	//Vector<int> v1(v);
+	std::cout << v[2];
+	std::cout<<v.back();
+	/*for (size_t i = 0; i < v.size(); ++i)
+	{
+		std::cout << v[i];
+	}*/
+	
+}
