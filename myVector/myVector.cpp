@@ -6,7 +6,6 @@ template<class T>
 class Vector
 {
 public:
-	template<class T>
 	class Iterator;
 
 	Vector() {
@@ -36,8 +35,6 @@ public:
 			arr_[i] = value;
 		}
 	}
-	//template<class T1>
-	//Vector(T1* begin, T1* end);
 	Vector(const Vector& other) {
 		if (this != &other) {
 			delete[] arr_;
@@ -102,6 +99,7 @@ public:
 		}
 		return arr_[pos];
 	}
+
 	T& operator[](const size_t index) {
 		return arr_[index];
 	}
@@ -115,11 +113,11 @@ public:
 		return arr_[size_ - 1];
 	}
 
-	Iterator* begin() {
-		return &arr_[0];
+	Iterator begin() {
+		return arr_;
 	}
-	Iterator* end() {
-		return &arr_[size_];
+	Iterator end() {
+		return arr_ + size_;
 	}
 
 	bool empty() {
@@ -160,15 +158,25 @@ public:
 		arr_[pos] = value;
 		++size_;
 	}
-	//T* insert(T*pos, T value) 
+	Iterator insert(Iterator pos, T value) {
+		newCapacity(size_);
+		for (size_t i = size_; i > *pos; --i) {
+			arr_[i] = arr_[i - 1];
+		}
+		arr_[*pos] = value;
+		++size_;
+		return pos;
+	}
 	void erase(size_t pos) {
 		for (size_t i = pos; i < size_; ++i) {
 			arr_[i] = arr_[i + 1];
 		}
 		--size_;
 	}
-	//T* erase(size_t pos);
-	//T* erase(T* pos);
+	
+	Iterator* erase(T* pos) {
+
+	}
 	//T* erase(T* begin, T* end);
 	void push_back(T value) {
 		newCapacity(size_);
@@ -198,49 +206,57 @@ public:
 	}
 	void resize(size_t newSize) {
 		newCapacity(newSize);
-		T* temp = arr_;
-		arr_ = new T[capacity_];
 
-		for (size_t i = 0; i < newSize; ++i)
-		{
-			if (i < size_)
-			{
-				arr_[i] = temp[i];
-			}
-			else {
-				arr_[i] = 0;
-			}
+		if (newSize < size_){
+			size_ = newSize;
 		}
-		size_ = newSize;
+		else {
+			T* temp = arr_;
+			arr_ = new T[capacity_];
 
-		delete[] temp;
+			for (size_t i = 0; i < newSize; ++i)
+			{
+				if (i < size_)
+				{
+					arr_[i] = temp[i];
+				}
+				else {
+					arr_[i] = 0;
+				}
+			}
+			size_ = newSize;
+
+			delete[] temp;
+		}
+		
 	}
-
-	template<class T>
+	friend std::ostream& operator<< (std::ostream s, const Vector<T>& n);
 	class Iterator
 	{
 	public:
 		Iterator(T* cur) : cur_(cur) {}
-		~Iterator() { delete cur_; }
-
+		~Iterator() {
+			delete cur_;
+		}
 		T& operator+ (int i) { return *(cur_ + i); }
 		T& operator- (int i) { return *(cur_ - i); }
 
 		T& operator++ (int) { return *(cur_++); }
-		T& operator++ () { return *(++cur_); }
 		T& operator-- (int) { return *(cur_--); }
-		T& operator-- () { return *(--cur_); }
+		T& operator++ () { return *(++cur_); }
+		T& operator-- ()	{ return *(--cur_); }
 
 		bool operator!= (const Iterator& other) { return cur_ != other.cur_; }
 		bool operator== (const Iterator& other) { return cur_ == other.cur_; }
 
-		T& operator* () { return cur_; }
+		T& operator* () { return *cur_; }
 
-		friend std::ostream& operator<< (std::ostream s, const Vector<T>& n);
+		
 	private:
 		T* cur_;
 	};
 
+	
 protected:
 	void newCapacity(size_t size) {
 		if (size >= capacity_)	{
@@ -271,12 +287,7 @@ int main()
 	std::vector<int> a{ 1,2,3,4,5 };
 
 	Vector<int> v{ 1,2,3,4,5 };
-	//Vector<int> v1(v);
-	std::cout << v[2];
-	std::cout<<v.back();
-	/*for (size_t i = 0; i < v.size(); ++i)
-	{
-		std::cout << v[i];
-	}*/
+	auto it = Vector<int>::Iterator(v.begin());
+	//v.insert(it, 2);
 	
 }
