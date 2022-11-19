@@ -8,13 +8,10 @@ class Vector
 public:
 	class Iterator;
 
-	Vector() : size_(0), capacity_(1) {
-		arr_ = new T[capacity_];
-	}
-	Vector(size_t size) : size_(size), capacity_(size_)
-	{
-		arr_ = new T[capacity_]{};
-	}
+	Vector() : size_(0), capacity_{ 1 }, arr_{ new T[1] }
+	{	}
+	Vector(size_t size) : size_{ size }, capacity_{ size }, arr_{ new T[size]{} }
+	{	}
 	template<class T1>
 	Vector(std::initializer_list<T1> v):Vector(v.size()) {
 		int count = 0;
@@ -24,13 +21,14 @@ public:
 			++count;
 		}
 	}
-	Vector(T count, T value) : size_(count), capacity_(count) {
-		arr_ = new T[count];
+
+	Vector(size_t count, T value) : size_{ count }, capacity_{ count }, arr_{ new T[count] } {
 		for (size_t i = 0; i < size_; ++i)
 		{
 			arr_[i] = value;
 		}
 	}
+
 	Vector(const Vector& other) {
 		if (this != &other) {
 			delete[] arr_;
@@ -193,12 +191,10 @@ public:
 	}
 	Iterator erase(Iterator pos) {
 		int index = (reinterpret_cast<size_t>(&(*pos)) - reinterpret_cast<size_t>(&(*begin()))) / sizeof(T);
-		//??
-		//arr_[index].~T();
 		for (size_t i = index; i < size_; ++i) {
 			arr_[i] = arr_[i + 1];
 		}
-		//??
+
 		arr_[size_-1].~T();
 		--size_;
 
@@ -349,5 +345,5 @@ std::ostream& operator<< (std::ostream s, const Vector<T>& n)
 
 int main()
 {
-	
+
 }
